@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Гра Змійка</title>
+
+    <!-- ===== CSS ===== -->
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: #020617;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background: #020617;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px #22c55e;
+            text-align: center;
+        }
+
+        h1 {
+            color: #22c55e;
+            margin-bottom: 10px;
+        }
+
+        canvas {
+            background: #020617;
+            border: 3px solid #22c55e;
+            display: block;
+            margin: 15px auto;
+        }
+
+        .info {
+            margin: 10px 0;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background: #22c55e;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #16a34a;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <h1>ЗМІЙКА 🐍</h1>
+
+    <div class="info">
+        Очки: <span id="score">0</span>
+    </div>
+
+    <canvas id="game" width="400" height="400"></canvas>
+
+    <p>Керування: ⬅ ⬆ ➡ ⬇</p>
+
+    <button onclick="startGame()">Почати / Заново</button>
+
+</div>
+
+<!-- ===== JAVASCRIPT ===== -->
+<script>
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+const SIZE = 20;
+const COUNT = canvas.width / SIZE;
+
+let snake;
+let food;
+let dir;
+let score;
+let gameInterval;
+let speed = 120;
+
+// Старт гри
+function startGame() {
+    snake = [
+        {x:10,y:10},
+        {x:9,y:10},
+        {x:8,y:10}
+    ];
+
+    dir = {x:1,y:0};
+    score = 0;
+
+    spawnFood();
+    updateScore();
+
+    clearInterval(gameInterval);
+    gameInterval = setInterval(gameLoop, speed);
+}
+
+// Генерація їжі
+function spawnFood() {
+    food = {
+        x: Math.floor(Math.random() * COUNT),
+        y: Math.floor(Math.random() * COUNT)
+    };
+}
+
+// Малювання
+function draw() {
+    // Фон
+    ctx.fillStyle = '#020617';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    // Змійка
+    ctx.fillStyle = '#22c55e';
+    snake.forEach(part => {
+        ctx.fillRect(part.x*SIZE, part.y*SIZE, SIZE, SIZE);
+    });
+
+    // Їжа
+    ctx.fillStyle = '#f87171';
+    ctx.fillRect(food.x*SIZE, food.y*SIZE, SIZE, SIZE);
+}
+
+// Оновлення гри
+function gameLoop() {
+    const head = {
+        x: snake[0].x + dir.x,
+        y: snake[0].y + dir.y
+    };
+
+    // Стіни
+    if(head.x < 0 || head.x >= COUNT || head.y < 0 || head.y >= COUNT) {
+        gameOver();
+        return;
+    }
+
+    // Самоудар
+    for(let part of snake) {
+        if(part.x === head.x && part.y === head.y) {
+            gameOver();
+            return;
+        }
+    }
+
+    snake.unshift(head);
+
+    // Їжа
+    if(head.x === food.x && head.y === food.y) {
+        score++;
+        updateScore();
+        spawnFood();
+    } else {
+        snake.pop();
+    }
+
+    draw();
+}
+
+// Кінець гри
+function gameOver() {
+    clearInterval(gameInterval);
+    alert('Гру закінчено! Очки: ' + score);
+}
+
+// Очки
+function updateScore() {
+    document.getElementById('score').innerText = score;
+}
+
+// Керування
+window.addEventListener('keydown', e => {
+
+    if(e.key === 'ArrowUp' && dir.y !== 1) {
+        dir = {x:0,y:-1};
+    }
+
+    if(e.key === 'ArrowDown' && dir.y !== -1) {
+        dir = {x:0,y:1};
+    }
+
+    if(e.key === 'ArrowLeft' && dir.x !== 1) {
+        dir = {x:-1,y:0};
+    }
+
+    if(e.key === 'ArrowRight' && dir.x !== -1) {
+        dir = {x:1,y:0};
+    }
+});
+
+// Автостарт
+startGame();
+
+</script>
+
+</body>
+</html>
